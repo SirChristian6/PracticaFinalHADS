@@ -1,0 +1,64 @@
+﻿{% extends "app/layout.html" %}
+{% block content %}
+
+<h2>{{ title }}</h2>
+<h3>{{ message }}</h3>
+{% if not request.user.is_authenticated %}
+    <p><strong style="color:red;"><b>Si no se visualiza el botón de responder querrá decir que dicha pregunta no está completa</b></strong></p>
+{% endif %}
+
+<h3>Pregunta: {{ question.question_text }}</h3>
+{% if error_msg %}<p><strong style="color:red;"><b>{{ error_msg }}</b></strong></p>{% endif %}
+<form id="quiz" action="{% url 'vote' question.id %}" method="post">
+    {% csrf_token %}
+    {% for choice in question.choice_set.all %}
+        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}" />
+        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
+        {% if request.user.is_authenticated %}
+            <label for="choice{{ forloop.counter }}" style="color:green">{% if choice.Correcta %}/ Correcta {% endif %}</label>
+            <label for="choice{{ forloop.counter }}">/ Número de veces seleccionada= {{ choice.votes }}</label>
+        {% endif %}
+        <br />
+    {% endfor %}
+    {% if request.user.is_authenticated %}
+        <a href="{% url 'choice_add' question.id %}"><h3>Insertar Opciones</h3></a>
+        <a href="{% url 'chart' question.id %}"> <h3>Ver resultado de la votacion</h3> </a><br />
+    {% else %}
+        {% for choice in question.choice_set.all %}
+            {% if choice.Correcta and question.choice_set.all|length >= 2%}
+                <p id="err" style="color:red;"></p>
+                <input type="submit" value="Confirmar mi Respuesta" />
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+</form>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    $('#quiz').on('submit',function () {
+        var post_url = $('#quiz').attr('action');
+        var formData = new FormData(this);
+        if ($("input[type=radio]:checked").length > 0) {
+            // Do your stuff here
+            $.ajax({
+                url: post_url,
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $("body").html(response);
+                },
+            });
+        }
+        else {
+            $('#err').html("Debes elegir al menos una respuesta")
+        }
+        
+        return false;
+    });
+
+</script>
+{% endblock %}

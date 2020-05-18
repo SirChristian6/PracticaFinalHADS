@@ -1,0 +1,15 @@
+﻿{% extends "app/layout.html" %}
+{% block content %}
+
+<h2>{{ title }}.</h2>
+
+<h1>Insertar una opción</h1>
+        {% if error_msg %}<p><strong style="color:red;"><b>{{ error_msg }}</b></strong></p>{% endif %}
+        {% if message %}<p><strong style="color:green;"><b>{{ message }}</b></strong></p>{% endif %}
+        <form method="POST" class="post-form">{% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="save btn btn-default" onclick="">Save</button>
+        </form>
+<a href="{% url 'index' %}">Ver preguntas</a> 
+
+{% endblock %}
